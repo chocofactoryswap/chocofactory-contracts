@@ -1,4 +1,4 @@
-const MASTER = artifacts.require("KitKatMaster");
+const MASTER = artifacts.require("KtKtMaster");
 const user = '0xDAF1D6AB3268b4fAf348B470A28951d89629D306';
 function toN(bn){
     if( ! bn ) return '-';
@@ -8,12 +8,12 @@ function toN(bn){
 module.exports = async function() {
     const cli = await MASTER.deployed();
     const pid = '0';
-    console.log('KitKatMaster', cli.address);
+    console.log('KtKtMaster', cli.address);
     const r = await cli.poolInfoByPid(pid);
     let allocPoint = toN(r._allocPoint);
     let lastRewardBlock = r._lastRewardBlock.toNumber();
-    let accKitKatPerShare = toN(r._accKitKatPerShare);
+    let accKtKtPerShare = toN(r._accKtKtPerShare);
     console.log('lastRewardBlock', lastRewardBlock);
-    console.log('accKitKatPerShare', accKitKatPerShare);
+    console.log('accKtKtPerShare', accKtKtPerShare);
     process.exit(0);
 };

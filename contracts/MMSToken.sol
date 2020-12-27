@@ -1,16 +1,17 @@
 pragma solidity 0.6.12;
+// SPDX-License-Identifier: MIT
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract KitKatToken is ERC20("KitKatToken", "KitKat"), Ownable {
+contract MMSToken is ERC20("MMs Candy", "MMS"), Ownable {
 
     constructor() public {
         // mint 1 token to add as liquidity and generate pools
         mint( _msgSender() , 1 ether );
     }
 
-    /// @notice Creates `_amount` token to `_to`. Must only be called by the owner (KitKatMaster).
+    /// @notice Creates `_amount` token to `_to`. Must only be called by the owner (MMSMaster).
     function mint(address _to, uint256 _amount) public onlyOwner {
         _mint(_to, _amount);
         _moveDelegates(address(0), _delegates[_to], _amount);

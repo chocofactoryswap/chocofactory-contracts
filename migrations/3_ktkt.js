@@ -1,13 +1,14 @@
-const TOKEN = artifacts.require("KitKatToken");
-const MASTER = artifacts.require("KitKatMaster");
+const TOKEN = artifacts.require("KtKtToken");
+const MASTER = artifacts.require("KtKtMaster");
 module.exports = async function(deployer, network, accounts) {
     let TokensPerBlock = '100000000000000';//0.0001
-    let startBlock = 3042969;
+    let startBlock = 3473183;
     let bonusEndBlock = 0;
+    const blocks_per_day = 28760; // ~
     if( network == 'testnet' ){
         startBlock = 4360007;
     }
-    bonusEndBlock = startBlock + 1000000;
+    bonusEndBlock = startBlock + (blocks_per_day*30);
     await deployer.deploy(TOKEN);
     console.log('TOKEN', TOKEN.address);
     const devaddr = accounts[0];

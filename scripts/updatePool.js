@@ -1,9 +1,9 @@
-const MASTER = artifacts.require("KitKatMaster");
+const MASTER = artifacts.require("KtKtMaster");
 const user = '0xDAF1D6AB3268b4fAf348B470A28951d89629D306';
 module.exports = async function() {
     const cli = await MASTER.deployed();
     const pid = '0';
-    console.log('KitKatMaster', cli.address);
+    console.log('KtKtMaster', cli.address);
     await cli.updatePool(pid);
     console.log('updatePool');
     process.exit(0);

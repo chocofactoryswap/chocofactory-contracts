@@ -1,17 +1,16 @@
 pragma solidity 0.6.12;
-// SPDX-License-Identifier: MIT
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract FerreroToken is ERC20("FerreroToken", "Ferrero"), Ownable {
+contract KtKtToken is ERC20("KtKt Bar", "KtKt"), Ownable {
 
     constructor() public {
         // mint 1 token to add as liquidity and generate pools
         mint( _msgSender() , 1 ether );
     }
 
-    /// @notice Creates `_amount` token to `_to`. Must only be called by the owner (FerreroMaster).
+    /// @notice Creates `_amount` token to `_to`. Must only be called by the owner (KtKtMaster).
     function mint(address _to, uint256 _amount) public onlyOwner {
         _mint(_to, _amount);
         _moveDelegates(address(0), _delegates[_to], _amount);

@@ -1,4 +1,4 @@
-const MASTER = artifacts.require("KitKatMaster");
+const MASTER = artifacts.require("KtKtMaster");
 module.exports = async function(deployer) {
     const cli = await MASTER.deployed();
     const _allocPoint = '0';

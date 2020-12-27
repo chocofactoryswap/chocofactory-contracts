@@ -6,15 +6,15 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./FerreroToken.sol";
+import "./MMSToken.sol";
 
-// FerreroMaster is the hub that accumulates and distributes Ferrero
+// MMSMaster is the hub that accumulates and distributes MMS
 //
 // Note that it's ownable and the owner wields tremendous power. The ownership
-// will be transFerreroed to a governance smart contract once Ferrero is sufficiently
+// will be transMMSed to a governance smart contract once MMS is sufficiently
 // distributed and the community can show to govern itself.
 //
-contract FerreroMaster is Ownable {
+contract MMSMaster is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -24,13 +24,13 @@ contract FerreroMaster is Ownable {
         uint256 rewardDebt; // Reward debt. See explanation below.
         address ref; // Ref address
         //
-        // We do some fancy math here. Basically, any point in time, the amount of Ferreros
+        // We do some fancy math here. Basically, any point in time, the amount of MMSs
         // entitled to a user but is pending to be distributed is:
         //
-        //   pending reward = (user.amount * pool.accFerreroPerShare) - user.rewardDebt
+        //   pending reward = (user.amount * pool.accMMSPerShare) - user.rewardDebt
         //
         // Whenever a user deposits or withdraws LP tokens to a pool. Here's what happens:
-        //   1. The pool's `accFerreroPerShare` (and `lastRewardBlock`) gets updated.
+        //   1. The pool's `accMMSPerShare` (and `lastRewardBlock`) gets updated.
         //   2. User receives the pending reward sent to his/her address.
         //   3. User's `amount` gets updated.
         //   4. User's `rewardDebt` gets updated.
@@ -39,20 +39,20 @@ contract FerreroMaster is Ownable {
     // Info of each pool.
     struct PoolInfo {
         IERC20 lpToken;           // Address of LP token contract.
-        uint256 allocPoint;       // How many allocation points assigned to this pool. Ferreros to distribute per block.
-        uint256 lastRewardBlock;  // Last block number that Ferreros distribution occurs.
-        uint256 accFerreroPerShare; // Accumulated Ferreros per share, times 1e12. See below.
+        uint256 allocPoint;       // How many allocation points assigned to this pool. MMSs to distribute per block.
+        uint256 lastRewardBlock;  // Last block number that MMSs distribution occurs.
+        uint256 accMMSPerShare; // Accumulated MMSs per share, times 1e12. See below.
     }
 
-    // The Ferrero TOKEN!
-    FerreroToken public Ferrero;
+    // The MMS TOKEN!
+    MMSToken public MMS;
     // Dev address.
     address public devaddr;
-    // Block number when bonus Ferrero period ends.
+    // Block number when bonus MMS period ends.
     uint256 public bonusEndBlock;
-    // Ferrero tokens created per block.
-    uint256 public FerreroPerBlock;
-    // Bonus muliplier for early Ferrero makers.
+    // MMS tokens created per block.
+    uint256 public MMSPerBlock;
+    // Bonus muliplier for early MMS makers.
     uint256 public BONUS_MULTIPLIER = 2;
 	// dev shares 5%
     uint256 public DEV_SHARES = 20;
@@ -63,7 +63,7 @@ contract FerreroMaster is Ownable {
     mapping (uint256 => mapping (address => UserInfo)) public userInfo;
     // Total allocation poitns. Must be the sum of all allocation points in all pools.
     uint256 public totalAllocPoint = 0;
-    // The block number when Ferrero mining starts.
+    // The block number when MMS mining starts.
     uint256 public startBlock;
 
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
@@ -76,15 +76,15 @@ contract FerreroMaster is Ownable {
     }
 
     constructor(
-        FerreroToken _Ferrero,
+        MMSToken _MMS,
         address _devaddr,
-        uint256 _FerreroPerBlock,
+        uint256 _MMSPerBlock,
         uint256 _startBlock,
         uint256 _bonusEndBlock
     ) public {
-        Ferrero = _Ferrero;
+        MMS = _MMS;
         devaddr = _devaddr;
-        FerreroPerBlock = _FerreroPerBlock;
+        MMSPerBlock = _MMSPerBlock;
         bonusEndBlock = _bonusEndBlock;
         startBlock = _startBlock;
 
@@ -95,8 +95,8 @@ contract FerreroMaster is Ownable {
         return poolInfo.length;
     }
 
-    function changeFerreroPerBlock(uint256 _newFerreroPerBlock) public onlyOwner {
-        FerreroPerBlock = _newFerreroPerBlock;
+    function changeMMSPerBlock(uint256 _newMMSPerBlock) public onlyOwner {
+        MMSPerBlock = _newMMSPerBlock;
     }
 
     // Detects whether the given pool already exists
@@ -120,11 +120,11 @@ contract FerreroMaster is Ownable {
             lpToken: _lpToken,
             allocPoint: _allocPoint,
             lastRewardBlock: lastRewardBlock,
-            accFerreroPerShare: 0
+            accMMSPerShare: 0
         }));
     }
 
-    // Update the given pool's Ferrero allocation point. Can only be called by the owner.
+    // Update the given pool's MMS allocation point. Can only be called by the owner.
     function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate) public onlyOwner validatePool(_pid) {
         if (_withUpdate) {
             massUpdatePools();
@@ -146,18 +146,18 @@ contract FerreroMaster is Ownable {
         }
     }
 
-    // View function to see pending Ferreros on frontend.
-    function pendingFerrero(uint256 _pid, address _user) external view returns (uint256) {
+    // View function to see pending MMSs on frontend.
+    function pendingMMS(uint256 _pid, address _user) external view returns (uint256) {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
-        uint256 accFerreroPerShare = pool.accFerreroPerShare;
+        uint256 accMMSPerShare = pool.accMMSPerShare;
         uint256 lpSupply = pool.lpToken.balanceOf(address(this));
         if (block.number > pool.lastRewardBlock && lpSupply != 0) {
             uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-            uint256 FerreroReward = multiplier.mul(FerreroPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
-            accFerreroPerShare = accFerreroPerShare.add(FerreroReward.mul(1e12).div(lpSupply));
+            uint256 MMSReward = multiplier.mul(MMSPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
+            accMMSPerShare = accMMSPerShare.add(MMSReward.mul(1e12).div(lpSupply));
         }
-        return user.amount.mul(accFerreroPerShare).div(1e12).sub(user.rewardDebt);
+        return user.amount.mul(accMMSPerShare).div(1e12).sub(user.rewardDebt);
     }	
 
     // Update reward variables for all pools. Be careful of gas spending!
@@ -180,14 +180,14 @@ contract FerreroMaster is Ownable {
             return;
         }
         uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-        uint256 FerreroReward = multiplier.mul(FerreroPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
-        Ferrero.mint(devaddr, FerreroReward.div(DEV_SHARES));
-        Ferrero.mint(address(this), FerreroReward);
-        pool.accFerreroPerShare = pool.accFerreroPerShare.add(FerreroReward.mul(1e12).div(lpSupply));
+        uint256 MMSReward = multiplier.mul(MMSPerBlock).mul(pool.allocPoint).div(totalAllocPoint);
+        MMS.mint(devaddr, MMSReward.div(DEV_SHARES));
+        MMS.mint(address(this), MMSReward);
+        pool.accMMSPerShare = pool.accMMSPerShare.add(MMSReward.mul(1e12).div(lpSupply));
         pool.lastRewardBlock = block.number;
     }
 
-    // Deposit LP tokens to FerreroMaster for Ferrero allocation.
+    // Deposit LP tokens to MMSMaster for MMS allocation.
     function deposit(uint256 _pid, uint256 _amount, address _ref) public validatePool(_pid) {
         require(_ref != msg.sender, "deposit: invalid ref address");
         PoolInfo storage pool = poolInfo[_pid];
@@ -195,34 +195,34 @@ contract FerreroMaster is Ownable {
         updatePool(_pid);
 
         if (user.amount > 0) {
-            uint256 pending = user.amount.mul(pool.accFerreroPerShare).div(1e12).sub(user.rewardDebt);
+            uint256 pending = user.amount.mul(pool.accMMSPerShare).div(1e12).sub(user.rewardDebt);
             if(pending > 0) {
-                safeFerreroTransfer(msg.sender, pending);
+                safeMMSTransfer(msg.sender, pending);
             }
         }
         if(_amount > 0) {
             pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
             user.amount = user.amount.add(_amount);
         }
-        user.rewardDebt = user.amount.mul(pool.accFerreroPerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accMMSPerShare).div(1e12);
         emit Deposit(msg.sender, _pid, _amount);
     }
 
-    // Withdraw LP tokens from FerreroMaster.
+    // Withdraw LP tokens from MMSMaster.
     function withdraw(uint256 _pid, uint256 _amount) public validatePool(_pid) {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "withdraw: not good");
         updatePool(_pid);
-        uint256 pending = user.amount.mul(pool.accFerreroPerShare).div(1e12).sub(user.rewardDebt);
+        uint256 pending = user.amount.mul(pool.accMMSPerShare).div(1e12).sub(user.rewardDebt);
         if(pending > 0) {
-            safeFerreroTransfer(msg.sender, pending);
+            safeMMSTransfer(msg.sender, pending);
         }
         if(_amount > 0) {
             user.amount = user.amount.sub(_amount);
             pool.lpToken.safeTransfer(address(msg.sender), _amount);
         }
-        user.rewardDebt = user.amount.mul(pool.accFerreroPerShare).div(1e12);
+        user.rewardDebt = user.amount.mul(pool.accMMSPerShare).div(1e12);
         emit Withdraw(msg.sender, _pid, _amount);
     }
 
@@ -236,13 +236,13 @@ contract FerreroMaster is Ownable {
         user.rewardDebt = 0;
     }
 
-    // Safe Ferrero transfer function, just in case if rounding error causes pool to not have enough Ferreros.
-    function safeFerreroTransfer(address _to, uint256 _amount) internal {
-        uint256 FerreroBal = Ferrero.balanceOf(address(this));
-        if (_amount > FerreroBal) {
-            Ferrero.transfer(_to, FerreroBal);
+    // Safe MMS transfer function, just in case if rounding error causes pool to not have enough MMSs.
+    function safeMMSTransfer(address _to, uint256 _amount) internal {
+        uint256 MMSBal = MMS.balanceOf(address(this));
+        if (_amount > MMSBal) {
+            MMS.transfer(_to, MMSBal);
         } else {
-            Ferrero.transfer(_to, _amount);
+            MMS.transfer(_to, _amount);
         }
     }
 
@@ -255,7 +255,7 @@ contract FerreroMaster is Ownable {
     // admin management service
     function changeAdminParams(uint256 _PerBlock, uint256 _startBlock, uint256 _bonusEndBlock,
         uint256 _BONUS_MULTIPLIER, uint256 _DEV_SHARES) public onlyOwner {
-        FerreroPerBlock = _PerBlock; // to manage inflation.
+        MMSPerBlock = _PerBlock; // to manage inflation.
         bonusEndBlock = _bonusEndBlock; // to start/stop bonus period
         startBlock = _startBlock; // to start/stop reward
         BONUS_MULTIPLIER = _BONUS_MULTIPLIER; // to manager bonus
