@@ -22,7 +22,7 @@ More details coming soon.
 
 # Exchange
 
-- (Uni|chocofactory)swapV2Factory - 0x498eFb19A0c4AfD9FFc56932E25AD736e84407cF
+- (Uni|chocofactory)swapV2Factory - 0xDEBA8b1314dC39c796B0035b88EB921A0A49e768
 - (Uni|chocofactory)swapV2Router02 - 0xB6fdd734f6180568F604E0fF2e597677c1E36918
 - (Uni|chocofactory)swapV2Pair init code hash - `4ba0188a8ba5b2b5ef91337cb7751d7ecbd5893c50c08e653a81c822307cc8f8`
 
